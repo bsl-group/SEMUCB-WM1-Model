@@ -1,0 +1,108 @@
+Evaluation tool for UCB A3d models (with homogenized crust)
+===========================================================
+
+Version 0.4 (2015/10/19) for SEMUCB-WM1
+
+Introduction
+------------
+
+This code currently supports evaluation of the model:
+  1) at a user-specified radius and (lon, lat) tuple;
+  2) at a user-specified radius and list of (lon, lat) tuples; or
+  2) on a regular lat-lon grid with user-specified spacing and radius.
+In either case, the code exports both the relative Voigt-average shear velocity
+and Xi (= Vsh ** 2 / Vsv ** 2) perturbations (relative to the reference 1D
+model data/model.ref), as well as the associated absolute Vsv and Vsh values.
+
+Please report bugs to Scott French (sfrench@seismo.berkeley.edu).
+
+
+Compilation
+-----------
+
+Please adjust the Makefile (in this directory) to reflect your preferred C
+compiler (default is gcc). The resulting executable will be placed in this
+directory and must be run from here as well.
+
+
+Caveats about A3d models
+------------------------
+
+Although the A3d model format uses a spline basis to express perturbations
+relative to a "reference" 1D model (data/model.ref), it is important to note
+that the latter is not designed to be a "good" 1D reference model from the
+standpoint of fitting normal mode eigenfrequencies or other spherically
+averaged data (unlike REF or PREM, for example). It is simply a convenience in
+terms of parameterization.
+
+To put this another way, although this code is capable of computing model
+values in terms of percent perturbation relative to the global 1D reference
+model, it is important to note that the latter represents the spherically
+averaged part of the model at *most* depths. Above ~ 60 km depth, the reference
+is not truly spherically averaged, as the average omits regions within the
+homogenized crustal model. This is one of the reasons why the reference model
+is not truly a spherically symmetric reference earth model (and is not intended
+to be).
+
+
+Example usage
+-------------
+
+The output format used by this tool is:
+
+    <radius> <lon> <lat> <dlnVs (%)> <dlnXi (%)> <Vsv> <Vsh>
+
+which is written to the file specified with the -o command like option (or to
+model-samples.out if no argument is supplied).
+
+Radius (km) to evaluate the model is set using the -r option. If you would like
+to sample the model at multiple radii (note: all samples will be written to the
+same file), simply specify -r multiple times.
+
+For example, from this directory:
+
+    > ./a3d_dist.x -r 6300 -l -114.6,62.6 -o out.dat
+
+will write the above values to the file out.dat evaluated at a radius of 6300km
+and at 114.6W 62.6N, while:
+
+    > ./a3d_dist.x -r 6300 -d 2 -o out.dat
+
+will instead write these values evaluated on a global 2 x 2 degree regular grid
+of points. Finally
+
+    > ./a3d_dist.x -r 6300 -i in.dat -o out.dat
+
+will write these values evaluated at a list of lon, lat points in in.dat (one
+per line) to out.dat. The input file is expected to have a simple two-column
+format:
+
+    <lon 1> <lat 1>
+    <lon 2> <lat 2>
+    ...
+    <lon N> <lat N>
+
+Note: nan values indicate evalution within the smooth crustal layer (which are
+not interpretable). See French et al. (2013) and French and Romanowicz (2014)
+for details of the crustal model.
+
+
+Plotting
+--------
+
+An example plotting script, written in the Python programming language, is also
+included in the plotting/ subdirectory. The script depends on the open-source
+numpy and matplotlib libraries, as well as the Basemap toolkit (a GMT-like
+library for use with matplotlib). The script may be used to plot model grids
+exported on a 1 x 1 degree regular grid (i.e. with the argument -d 1).
+
+
+References
+----------
+
+* Scott French, Barbara Romanowicz, "Whole-mantle radially anisotropic shear
+  velocity structure from spectral-element waveform tomography", Geophysical
+  Journal International, 2014, 199, doi: 10.1093/gji/ggu334
+* Scott French, Vedran Lekic, Barbara Romanowicz, "Waveform Tomography Reveals
+  Channeled Flow at the Base of the Oceanic Asthenosphere", Science, 2013,
+  342:227, doi: 10.1126/science.1241514
